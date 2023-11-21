@@ -1,0 +1,16 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}?currentSchema=${POSTGRES_SCHEMA}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+  liquibase:
+    default-schema: ${POSTGRES_SCHEMA}
+    change-log: db/changelog/db.changelog.yaml
+    liquibase-schema: ${POSTGRES_SCHEMA}
+  jpa:
+    properties:
+      hibernate:
+        default_schema: ${POSTGRES_SCHEMA}

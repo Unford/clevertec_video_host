@@ -27,15 +27,19 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
     implementation 'org.liquibase:liquibase-core'
+    implementation 'net.lbruun.springboot:preliquibase-spring-boot-starter:1.4.0'
+
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
     compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
+
 tasks.named('bootBuildImage') {
+
     builder = 'paketobuildpacks/builder-jammy-base:latest'
 }
 
