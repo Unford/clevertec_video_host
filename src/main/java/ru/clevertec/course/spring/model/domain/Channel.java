@@ -1,13 +1,12 @@
 package ru.clevertec.course.spring.model.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
+import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -39,6 +38,12 @@ public class Channel {
 
     @ManyToOne
     private Category category;
+    @Enumerated(EnumType.STRING)
     private Language language;
+
+    @PrePersist
+    public void onPrePersist() {
+        this.createDate = LocalDate.now();
+    }
 
 }

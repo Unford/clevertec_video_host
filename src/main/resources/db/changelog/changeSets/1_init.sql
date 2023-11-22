@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS channel
     author_id   BIGINT,
     create_date date,
     category_id BIGINT,
-    language    SMALLINT,
+    language    VARCHAR(255),
     CONSTRAINT pk_channel PRIMARY KEY (id),
     CONSTRAINT uc_channel_title UNIQUE (title),
     CONSTRAINT FK_CHANNEL_ON_AUTHOR FOREIGN KEY (author_id) REFERENCES "user" (id) on delete cascade ,
