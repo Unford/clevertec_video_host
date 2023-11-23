@@ -14,9 +14,19 @@ spring:
     properties:
       hibernate:
         default_schema: ${POSTGRES_SCHEMA}
+        format_sql: true
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
 
   mvc:
     throw-exception-if-no-handler-found: true
   web:
     resources:
       add-mappings: false
+
+minio:
+  bucket: ${MINIO_BUCKET}
+  url: ${MINIO_URL}
+  accessKey: ${MINIO_ACCESS_KEY}
+  secretKey: ${MINIO_SECRET_KEY}
