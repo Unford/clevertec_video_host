@@ -1,22 +1,27 @@
 package ru.clevertec.course.spring.model.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
+import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
+@ToString
+@AllArgsConstructor
+@NoArgsConstructor
+@Accessors(chain = true)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String nickname;
     private String name;
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
     @ManyToMany(mappedBy = "subscribers")

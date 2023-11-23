@@ -29,16 +29,6 @@ import java.util.stream.Collectors;
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     private static final String CONSTRAINT_VIOLATION_MESSAGE_PATTERN = "[%s]:'%s' %s";
 
-    @Override
-    protected ResponseEntity<Object> createResponseEntity(Object body,
-                                                          HttpHeaders headers,
-                                                          HttpStatusCode statusCode,
-                                                          WebRequest request) {
-        return super.createResponseEntity(body, headers, statusCode, request);
-    }
-
-
-
 
     @Override
     protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,

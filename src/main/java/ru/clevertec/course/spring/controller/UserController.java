@@ -6,9 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.clevertec.course.spring.model.domain.User;
 import ru.clevertec.course.spring.model.dto.UserDto;
-import ru.clevertec.course.spring.model.mapper.UserMapper;
 import ru.clevertec.course.spring.model.validation.CreateValidation;
 import ru.clevertec.course.spring.service.UserService;
 
@@ -26,7 +24,7 @@ public class UserController {
     public UserDto createUser(@RequestBody @Validated({CreateValidation.class, Default.class})
                               UserDto userDto) {
         userDto.setId(null);
-        return userService.createUser(userDto);
+        return userService.create(userDto);
 
     }
 
