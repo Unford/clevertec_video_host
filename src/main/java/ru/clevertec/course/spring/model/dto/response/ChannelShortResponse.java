@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 public class ChannelShortResponse {
     private String title;
     private String image;
-    private Integer subscribersCounter;
+    private long subscriberCount;
     private String category;
     private String language;
 }

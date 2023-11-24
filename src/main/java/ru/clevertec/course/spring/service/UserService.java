@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.clevertec.course.spring.exception.ResourceAlreadyExists;
 import ru.clevertec.course.spring.exception.ResourceNotFoundException;
+import ru.clevertec.course.spring.model.domain.projection.ChannelTitleOnly;
 import ru.clevertec.course.spring.model.dto.UserDto;
 import ru.clevertec.course.spring.model.mapper.UserMapper;
+import ru.clevertec.course.spring.repository.ChannelRepository;
 import ru.clevertec.course.spring.repository.UserRepository;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
     private final UserMapper mapper;
 
     @Transactional
@@ -41,11 +44,17 @@ public class UserService {
                 .map(userRepository::save)
                 .map(mapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User associated with %s id is not found"
-                                .formatted(userDto.getId())));
+                        .formatted(userDto.getId())));
     }
 
     public List<UserDto> findAll() {
         return mapper.toDto(userRepository.findAll());
     }
 
+    public List<String> findAllSubscriptionsNamesById(Long id) {
+        userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User associated with %s id is not found"
+                        .formatted(id)));
+        return channelRepository.findBySubscribersId(id).stream().map(ChannelTitleOnly::getTitle).toList();
+    }
 }

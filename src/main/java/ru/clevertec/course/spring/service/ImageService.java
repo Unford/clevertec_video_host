@@ -1,7 +1,10 @@
 package ru.clevertec.course.spring.service;
 
 import io.minio.*;
+
+import io.minio.errors.ErrorResponseException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,6 +12,7 @@ import ru.clevertec.course.spring.config.MinioProperties;
 import ru.clevertec.course.spring.exception.ImageUploadException;
 
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -28,15 +32,14 @@ public class ImageService {
             throw new ImageUploadException("File isn't an image, please provide png, jpeg or gif file");
         }
         filename = "%s.%s".formatted(filename, getExtension(file));
-        file.getContentType();
+
         createBucket();
         saveImage(file, filename);
         return filename;
     }
 
     private String getExtension(MultipartFile file) {
-        return file.getOriginalFilename()
-                .substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+        return file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
     }
 
     private void createBucket() {
@@ -69,6 +72,7 @@ public class ImageService {
     }
 
     public byte[] getImage(String fileName) {
+        if (fileName == null) return new byte[0];
         try {
 
             GetObjectResponse objectResponse = minioClient.getObject(GetObjectArgs.builder()
@@ -77,9 +81,19 @@ public class ImageService {
                     .build());
             return objectResponse.readAllBytes();
 
+        } catch (ErrorResponseException e) {
+            if (e.response().code() == HttpStatus.NOT_FOUND.value()) {
+                return new byte[0];
+            }
+            throw new ImageUploadException("Image get failed: " + e.getMessage());
         } catch (Exception e) {
             throw new ImageUploadException("Image get failed: " + e.getMessage());
         }
+    }
+
+    public String getEncodedImage(String fileName) {
+        byte[] bytes = getImage(fileName);
+        return Base64.getEncoder().encodeToString(bytes);
     }
 
 }

@@ -41,4 +41,12 @@ public class UserController {
     public List<UserDto> getUsers() {
         return userService.findAll();
     }
+
+    @GetMapping("/{id}/subscriptions")
+    @ResponseStatus(value = HttpStatus.OK)
+    public List<String> getUserSubscriptionsNames(@PathVariable("id") @Positive Long id) {
+        return userService.findAllSubscriptionsNamesById(id);
+    }
+
+
 }

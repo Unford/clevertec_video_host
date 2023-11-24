@@ -1,12 +1,16 @@
 package ru.clevertec.course.spring.service;
 
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ru.clevertec.course.spring.exception.ResourceAlreadyExists;
 import ru.clevertec.course.spring.exception.ResourceNotFoundException;
 import ru.clevertec.course.spring.model.domain.Category;
 import ru.clevertec.course.spring.model.domain.Channel;
+import ru.clevertec.course.spring.model.dto.request.ChannelFilterRequest;
 import ru.clevertec.course.spring.model.dto.request.ChannelPatchRequest;
 import ru.clevertec.course.spring.model.dto.request.ChannelRequest;
 import ru.clevertec.course.spring.model.dto.response.ChannelFullResponse;
@@ -16,7 +20,6 @@ import ru.clevertec.course.spring.repository.CategoryRepository;
 import ru.clevertec.course.spring.repository.ChannelRepository;
 import ru.clevertec.course.spring.repository.UserRepository;
 
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -34,7 +37,8 @@ public class ChannelService {
     @Transactional
     public ChannelFullResponse create(ChannelRequest channelRequest) {
         channelRepository.findChannelByTitle(channelRequest.getTitle())
-                .ifPresent(c -> { throw new ResourceAlreadyExists("Channel title '%s' is already taken"
+                .ifPresent(c -> {
+                    throw new ResourceAlreadyExists("Channel title '%s' is already taken"
                             .formatted(channelRequest.getTitle()));
                 });
 
@@ -42,13 +46,7 @@ public class ChannelService {
                 .map(u -> channelMapper.toEntity(channelRequest).setAuthor(u))
                 .map(u -> u.setCategory(prepareCategory(u.getCategory().getTitle())))
                 .map(channelRepository::save)
-                .map(ch -> {
-                    if (Objects.nonNull(channelRequest.getFile())) {
-                        String avatar = imageService.upload(channelRequest.getFile(), ch.getId().toString());
-                        ch.setImage(avatar);
-                    }
-                    return ch;
-                })
+                .map(ch -> saveImage(channelRequest.getFile(), ch))
                 .orElseThrow(() -> new ResourceNotFoundException("User associated with '%s' id is not found"
                         .formatted(channelRequest.getAuthor().getId())));
 
@@ -64,30 +62,53 @@ public class ChannelService {
     @Transactional
     public ChannelFullResponse update(ChannelPatchRequest channelRequest) {
         channelRepository.findChannelByTitle(channelRequest.getTitle())
-                .ifPresent(c -> { throw new ResourceAlreadyExists("Channel title '%s' is already taken"
-                        .formatted(channelRequest.getTitle()));
+                .ifPresent(c -> {
+                    throw new ResourceAlreadyExists("Channel title '%s' is already taken"
+                            .formatted(channelRequest.getTitle()));
                 });
         return channelRepository.findById(channelRequest.getId())
                 .map(c -> channelMapper.updateFromDto(channelRequest, c))
                 .map(c -> channelRequest.getCategory() != null ?
                         c.setCategory(prepareCategory(channelRequest.getCategory())) : c)
                 .map(channelRepository::save)
-                .map(ch -> {
-                    if (Objects.nonNull(channelRequest.getFile())) {
-                        String avatar = imageService.upload(channelRequest.getFile(), ch.getId().toString());
-                        ch.setImage(avatar);
-                    }
-                    return ch;
-                })
+                .map(ch -> saveImage(channelRequest.getFile(), ch))
                 .map(channelMapper::toFullResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Channel associated with %s id is not found"
                         .formatted(channelRequest.getId())));
+    }
+
+    private Channel saveImage(MultipartFile multipartFile, Channel ch) {
+        if (Objects.nonNull(multipartFile)) {
+            String avatar = imageService.upload(multipartFile, ch.getId().toString());
+            ch.setImage(avatar);
+        }
+        return ch;
+    }
+
+    public Page<ChannelShortResponse> findAllFiltered(ChannelFilterRequest cfr) {
+        return channelRepository.findAllFiltered(cfr.getTitle(), cfr.getLanguage(),
+                        cfr.getCategory(), cfr.toPageable())
+                .map(channelMapper::toShortResponse);
 
 
     }
 
-    public List<ChannelShortResponse> findAll() {
-        return channelRepository.findAll().stream().map(channelMapper::toShortResponse).toList();
+    public byte[] findChannelAvatar(Long id) {
+        Channel channel = channelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Channel associated with %s id is not found"
+                        .formatted(id)));
+        return imageService.getImage(channel.getImage());
     }
+
+    public ChannelFullResponse findById(Long id) {
+        Channel channel = channelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Channel associated with %s id is not found"
+                        .formatted(id)));
+        String encodedImage = imageService.getEncodedImage(channel.getImage());
+        return channelMapper.toFullResponse(channel)
+                .setImage(encodedImage)
+                .setSubscriberCount(Hibernate.size(channel.getSubscribers()));
+    }
+
 
 }

@@ -1,22 +1,22 @@
 package ru.clevertec.course.spring.controller;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.clevertec.course.spring.model.dto.request.ChannelFilterRequest;
 import ru.clevertec.course.spring.model.dto.request.ChannelPatchRequest;
 import ru.clevertec.course.spring.model.dto.request.ChannelRequest;
 import ru.clevertec.course.spring.model.dto.response.ChannelFullResponse;
 import ru.clevertec.course.spring.model.dto.response.ChannelShortResponse;
 import ru.clevertec.course.spring.model.validation.CreateValidation;
 import ru.clevertec.course.spring.service.ChannelService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/channels")
@@ -64,7 +64,20 @@ public class ChannelController {
 
     @GetMapping
     @ResponseStatus(value = HttpStatus.OK)
-    public List<ChannelShortResponse> findAll() {
-        return channelService.findAll();
+    public Page<ChannelShortResponse> findAll(@Valid ChannelFilterRequest channelFilterRequest) {
+
+        return channelService.findAllFiltered(channelFilterRequest);
+    }
+
+    @GetMapping(value = "/{id}/avatar")
+    @ResponseStatus(value = HttpStatus.OK)
+    public byte[] getChannelAvatar(@PathVariable("id") @Positive Long id) {
+        return channelService.findChannelAvatar(id);
+    }
+
+    @GetMapping(value = "/{id}")
+    @ResponseStatus(value = HttpStatus.OK)
+    public ChannelFullResponse getChannelById(@PathVariable("id") @Positive Long id) {
+        return channelService.findById(id);
     }
 }

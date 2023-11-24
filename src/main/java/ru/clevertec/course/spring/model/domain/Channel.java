@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -30,12 +31,7 @@ public class Channel {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_channel_subscription",
-            joinColumns = @JoinColumn(name = "channel_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
+    @ManyToMany(mappedBy = "subscribedChannels")
     @ToString.Exclude
     private Set<User> subscribers;
 
@@ -49,5 +45,6 @@ public class Channel {
     public void onPrePersist() {
         this.createDate = LocalDate.now();
     }
+
 
 }
