@@ -3,7 +3,6 @@ package ru.clevertec.course.spring.model.dto.response;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import ru.clevertec.course.spring.model.dto.UserDto;
 
 import java.time.LocalDate;
 
@@ -12,8 +11,14 @@ import java.time.LocalDate;
 @EqualsAndHashCode(callSuper = true)
 public class ChannelFullResponse extends ChannelShortResponse {
     private String description;
-    private UserDto author;
+    private UserResponse author;
     private LocalDate createDate;
+
+    @Override
+    public ChannelFullResponse setId(Long id) {
+        super.setId(id);
+        return this;
+    }
 
     @Override
     public ChannelFullResponse setTitle(String title) {

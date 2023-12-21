@@ -1,12 +1,14 @@
 package ru.clevertec.course.spring.service;
 
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.course.spring.exception.ResourceAlreadyExists;
 import ru.clevertec.course.spring.exception.ResourceNotFoundException;
 import ru.clevertec.course.spring.model.domain.projection.ChannelTitleOnly;
-import ru.clevertec.course.spring.model.dto.UserDto;
+import ru.clevertec.course.spring.model.dto.request.UserCreateRequest;
+import ru.clevertec.course.spring.model.dto.request.UserPatchRequest;
+import ru.clevertec.course.spring.model.dto.response.UserResponse;
 import ru.clevertec.course.spring.model.mapper.UserMapper;
 import ru.clevertec.course.spring.repository.ChannelRepository;
 import ru.clevertec.course.spring.repository.UserRepository;
@@ -22,7 +24,7 @@ public class UserService {
     private final UserMapper mapper;
 
     @Transactional
-    public UserDto create(UserDto userDto) {
+    public UserResponse create(UserCreateRequest userDto) {
         checkUniqueNicknameAndEmail(userDto.getNickname(), userDto.getEmail());
         return mapper.toDto(userRepository.save(mapper.toEntity(userDto)));
     }
@@ -37,18 +39,21 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto update(UserDto userDto) {
+    public UserResponse update(Long id, UserPatchRequest userDto) {
         checkUniqueNicknameAndEmail(userDto.getNickname(), userDto.getEmail());
-        return userRepository.findById(userDto.getId())
-                .map(u -> mapper.updateFromDto(userDto, u))
+        return userRepository.findById(id)
+                .map(u -> mapper.updateFromDto(id, userDto, u))
                 .map(userRepository::save)
                 .map(mapper::toDto)
                 .orElseThrow(() -> new ResourceNotFoundException("User associated with %s id is not found"
-                        .formatted(userDto.getId())));
+                        .formatted(id)));
     }
 
-    public List<UserDto> findAll() {
-        return mapper.toDto(userRepository.findAll());
+    public List<UserResponse> findAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(mapper::toDto)
+                .toList();
     }
 
     public List<String> findAllSubscriptionsNamesById(Long id) {

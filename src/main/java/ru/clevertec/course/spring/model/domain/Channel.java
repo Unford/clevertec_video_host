@@ -5,7 +5,6 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -40,6 +39,8 @@ public class Channel {
     @ManyToOne(cascade = {CascadeType.PERSIST})
     private Category category;
     private String language;
+
+
 
     @PrePersist
     public void onPrePersist() {

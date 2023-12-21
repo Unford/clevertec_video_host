@@ -10,15 +10,16 @@ import ru.clevertec.course.spring.exception.ResourceAlreadyExists;
 import ru.clevertec.course.spring.exception.ResourceNotFoundException;
 import ru.clevertec.course.spring.model.domain.Category;
 import ru.clevertec.course.spring.model.domain.Channel;
+import ru.clevertec.course.spring.model.dto.request.ChannelCreateRequest;
 import ru.clevertec.course.spring.model.dto.request.ChannelFilterRequest;
 import ru.clevertec.course.spring.model.dto.request.ChannelPatchRequest;
-import ru.clevertec.course.spring.model.dto.request.ChannelRequest;
 import ru.clevertec.course.spring.model.dto.response.ChannelFullResponse;
 import ru.clevertec.course.spring.model.dto.response.ChannelShortResponse;
 import ru.clevertec.course.spring.model.mapper.ChannelMapper;
 import ru.clevertec.course.spring.repository.CategoryRepository;
 import ru.clevertec.course.spring.repository.ChannelRepository;
 import ru.clevertec.course.spring.repository.UserRepository;
+import ru.clevertec.course.spring.repository.specification.ChannelSpecification;
 
 import java.util.Objects;
 
@@ -35,20 +36,20 @@ public class ChannelService {
     private final ChannelMapper channelMapper;
 
     @Transactional
-    public ChannelFullResponse create(ChannelRequest channelRequest) {
-        channelRepository.findChannelByTitle(channelRequest.getTitle())
+    public ChannelFullResponse create(ChannelCreateRequest channelCreateRequest, MultipartFile file) {
+        channelRepository.findChannelByTitle(channelCreateRequest.getTitle())
                 .ifPresent(c -> {
                     throw new ResourceAlreadyExists("Channel title '%s' is already taken"
-                            .formatted(channelRequest.getTitle()));
+                            .formatted(channelCreateRequest.getTitle()));
                 });
 
-        Channel channel = userRepository.findById(channelRequest.getAuthor().getId())
-                .map(u -> channelMapper.toEntity(channelRequest).setAuthor(u))
+        Channel channel = userRepository.findById(channelCreateRequest.getAuthor().getId())
+                .map(u -> channelMapper.toEntity(channelCreateRequest).setAuthor(u))
                 .map(u -> u.setCategory(prepareCategory(u.getCategory().getTitle())))
                 .map(channelRepository::save)
-                .map(ch -> saveImage(channelRequest.getFile(), ch))
+                .map(ch -> saveImage(file, ch))
                 .orElseThrow(() -> new ResourceNotFoundException("User associated with '%s' id is not found"
-                        .formatted(channelRequest.getAuthor().getId())));
+                        .formatted(channelCreateRequest.getAuthor().getId())));
 
 
         return channelMapper.toFullResponse(channel);
@@ -60,18 +61,18 @@ public class ChannelService {
     }
 
     @Transactional
-    public ChannelFullResponse update(ChannelPatchRequest channelRequest) {
+    public ChannelFullResponse update(Long id, ChannelPatchRequest channelRequest, MultipartFile file) {
         channelRepository.findChannelByTitle(channelRequest.getTitle())
                 .ifPresent(c -> {
                     throw new ResourceAlreadyExists("Channel title '%s' is already taken"
                             .formatted(channelRequest.getTitle()));
                 });
-        return channelRepository.findById(channelRequest.getId())
+        return channelRepository.findById(id)
                 .map(c -> channelMapper.updateFromDto(channelRequest, c))
                 .map(c -> channelRequest.getCategory() != null ?
                         c.setCategory(prepareCategory(channelRequest.getCategory())) : c)
                 .map(channelRepository::save)
-                .map(ch -> saveImage(channelRequest.getFile(), ch))
+                .map(ch -> saveImage(file, ch))
                 .map(channelMapper::toFullResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Channel associated with %s id is not found"
                         .formatted(channelRequest.getId())));
@@ -86,11 +87,9 @@ public class ChannelService {
     }
 
     public Page<ChannelShortResponse> findAllFiltered(ChannelFilterRequest cfr) {
-        return channelRepository.findAllFiltered(cfr.getTitle(), cfr.getLanguage(),
-                        cfr.getCategory(), cfr.toPageable())
-                .map(channelMapper::toShortResponse);
-
-
+        return channelRepository
+                .findAll(new ChannelSpecification(cfr.getTitle(), cfr.getLanguage(), cfr.getCategory()), cfr.toPageable())
+                .map(s -> channelMapper.toShortResponse(s, Hibernate.size(s.getSubscribers())));
     }
 
     public byte[] findChannelAvatar(Long id) {

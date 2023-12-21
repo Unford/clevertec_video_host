@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class ChannelShortResponse {
+    private Long id;
     private String title;
     private String image;
     private long subscriberCount;

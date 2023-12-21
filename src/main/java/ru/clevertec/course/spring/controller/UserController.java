@@ -1,13 +1,14 @@
 package ru.clevertec.course.spring.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.clevertec.course.spring.model.dto.UserDto;
-import ru.clevertec.course.spring.model.validation.CreateValidation;
+import ru.clevertec.course.spring.model.dto.request.UserCreateRequest;
+import ru.clevertec.course.spring.model.dto.request.UserPatchRequest;
+import ru.clevertec.course.spring.model.dto.response.UserResponse;
 import ru.clevertec.course.spring.service.UserService;
 
 import java.util.List;
@@ -21,29 +22,25 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(value = HttpStatus.CREATED)
-    public UserDto createUser(@RequestBody @Validated({CreateValidation.class, Default.class})
-                              UserDto userDto) {
-        userDto.setId(null);
+    public UserResponse createUser(@RequestBody @Valid UserCreateRequest userDto) {
+
         return userService.create(userDto);
 
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(value = HttpStatus.OK)
-    public UserDto updateUser(@PathVariable("id") @Positive Long id,
-                              @RequestBody @Validated UserDto userDto) {
-        userDto.setId(id);
-        return userService.update(userDto);
+    public UserResponse updateUser(@PathVariable("id") @Positive Long id,
+                              @RequestBody @Valid UserPatchRequest userDto) {
+        return userService.update(id,userDto);
     }
 
     @GetMapping
-    @ResponseStatus(value = HttpStatus.OK)
-    public List<UserDto> getUsers() {
+    public List<UserResponse> getUsers() {
         return userService.findAll();
     }
 
     @GetMapping("/{id}/subscriptions")
-    @ResponseStatus(value = HttpStatus.OK)
     public List<String> getUserSubscriptionsNames(@PathVariable("id") @Positive Long id) {
         return userService.findAllSubscriptionsNamesById(id);
     }
