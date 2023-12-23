@@ -13,11 +13,11 @@ VALUES ('Technology'),
        ('Sports');
 
 INSERT INTO channel (title, description, image, author_id, create_date, category_id, language)
-VALUES ('Tech News', 'Latest tech updates', 'tech_image.jpg', 1, '2023-01-01', 1, 1),
-       ('Space Explorers', 'Discover the universe', 'space_image.jpg', 2, '2023-02-01', 2, 2),
-       ('Adventure Travel', 'Explore the world', 'travel_image.jpg', 3, '2023-03-01', 3, 3),
-       ('Foodie Delights', 'Delicious recipes', 'food_image.jpg', 4, '2023-04-01', 4, 4),
-       ('Sports Mania', 'Exciting sports coverage', 'sports_image.jpg', 5, '2023-05-01', 5, 5);
+VALUES ('Tech News', 'Latest tech updates', null, 1, '2023-01-01', 1, 'ru'),
+       ('Space Explorers', 'Discover the universe', null, 2, '2023-02-01', 2, 'eng'),
+       ('Adventure Travel', 'Explore the world', null, 3, '2023-03-01', 3, 'ua'),
+       ('Foodie Delights', 'Delicious recipes', null, 4, '2023-04-01', 4, 'ru'),
+       ('Sports Mania', 'Exciting sports coverage', null, 5, '2023-05-01', 5, 'eng');
 
 INSERT INTO user_channel_subscription (channel_id, user_id)
 VALUES (1, 1),
